@@ -48,7 +48,8 @@ int main() {
 
 	vector<int> pcPredict = {0,1,2,3,4,5,6,7,8,9};
 	string removed = "";
-
+	vector<string> pcSay = {};
+	boolean pcFindAllNum = false;
 	string result = "";
 	 
 	
@@ -57,17 +58,16 @@ int main() {
 		cout << "당신의 차례 :: 중복없이 4숫자 입력 > ";
 		string input;
 		cin >> input;
+		while ((!isNumeric(input) || input.length() != 4 || isDuplication(input)) && _stricmp("q", input.c_str()) && input != "clear") {
+			cout << "잘못된 인풋" << endl;
+			cout << "입력 > ";
+			cin >> input;
+		}
 		if (input == "clear") {
 			system("cls");
 			cout << "==숫자 야구게임 (종료는 q 입력, 화면 클리어 clear 입력)==" << endl;
 			continue;
 		}
-		while ((!isNumeric(input) || input.length() != 4 || isDuplication(input)) && _stricmp("q", input.c_str())) {
-			cout << "잘못된 인풋" << endl;
-			cout << "입력 > ";
-			cin >> input;
-		}
-
 		if (!_stricmp("q", input.c_str())) {
 			cout << "종료합니다.";
 			cout << "정답 : " << select << endl;
@@ -78,9 +78,10 @@ int main() {
 		if (result != "FIND SUCCESS") {
 			cout << "PLAYER : " << split(result, ',')[0] << " ball,  " << split(result, ',')[1] << " Strake,  " << split(result, ',')[2] << " out" << endl;
 
-			string pcNum = getPcNum(pcPredict);
+			string pcNum = getPcNum(pcPredict, pcSay);
 			cout << "PC의 차례 :: " << pcNum << endl;
-
+			pcSay.push_back(pcNum);
+		
 			string pcResult = check(pcNum, playerInput);
 			if (pcResult == "FIND SUCCESS") {
 				cout << "당신의 패배" << endl;
@@ -89,7 +90,7 @@ int main() {
 			}
 			else {
 				cout <<  "PC : " << split(pcResult, ',')[0] << " ball,  " << split(pcResult, ',')[1] << " Strake,  " << split(pcResult, ',')[2] << " out" << endl;
-				if (split(pcResult, ',')[2] == "4") {
+				if (split(pcResult, ',')[2] == "4" && !pcFindAllNum ) {
 					int n0 = pcNum.at(0) - '0'; // 
 					int n1 = pcNum.at(1) - '0'; // 
 					int n2 = pcNum.at(2) - '0'; // 
@@ -111,35 +112,22 @@ int main() {
 					if (removed.find(pcNum.at(3)) == string::npos) {
 						removed += pcNum.at(3);
 					}
-
 				}
-				else if (split(pcResult, ',')[0] == "4") {
+				else if (split(pcResult, ',')[0] == "4" && !pcFindAllNum) {
 					int n0 = pcNum.at(0) - '0';
 					int n1 = pcNum.at(1) - '0';
 					int n2 = pcNum.at(2) - '0';
 					int n3 = pcNum.at(3) - '0';
-					
-					if (removed.find(pcNum.at(0)) == string::npos) {
-						pcPredict.push_back(n0);
-						pcPredict.push_back(n0);
 
-					}
-					if (removed.find(pcNum.at(1)) == string::npos) {
-						pcPredict.push_back(n1);
-						pcPredict.push_back(n1);
-
-					}
-					if (removed.find(pcNum.at(2)) == string::npos) {
-						pcPredict.push_back(n2);
-						pcPredict.push_back(n2);
-
-					}
-					if (removed.find(pcNum.at(3)) == string::npos) {
-						pcPredict.push_back(n3);
-						pcPredict.push_back(n3);
-					}
+					pcPredict.clear();
+					vector<int>().swap(pcPredict);
+					pcPredict.push_back(n0);
+					pcPredict.push_back(n1);
+					pcPredict.push_back(n2);
+					pcPredict.push_back(n3);
+					pcFindAllNum = true;
 				}
-				else if (split(pcResult, ',')[2] == "1") {
+				else if (split(pcResult, ',')[2] == "1" && !pcFindAllNum) {
 					int n0 = pcNum.at(0) - '0';
 					int n1 = pcNum.at(1) - '0';
 					int n2 = pcNum.at(2) - '0';
@@ -216,21 +204,26 @@ bool isDuplication(string const& str) {
 	return false;
 
 }
-string getPcNum(vector<int> pcPredict) {
+string getPcNum(vector<int> pcPredict, vector<string> pcSay) {
 	srand(time(NULL));
 	int size = pcPredict.size();
-	int a = rand() % size;
-	int c = pcPredict[a];
-	string select = to_string(c);
+	int cnt = 500;
+	string select;
 
-	for (int i = 0; i < 3; i++) {
-		a = rand() % size;
-		int c2 = pcPredict[a];
-		while (select.find(to_string(c2)) != string::npos) {
+	while (select.length() != 4 ||( std::find(pcSay.begin(), pcSay.end(), select) != pcSay.end() && cnt > 0)) {
+		int a = rand() % size;
+		int c = pcPredict[a];
+		select = to_string(c);
+		for (int i = 0; i < 3; i++) {
 			a = rand() % size;
-			c2 = pcPredict[a];
+			int c2 = pcPredict[a];
+			while (select.find(to_string(c2)) != string::npos) {
+				a = rand() % size;
+				c2 = pcPredict[a];
+			}
+			select += to_string(c2);
 		}
-		select += to_string(c2);
+		cnt--;
 	}
 	return select;
 }
